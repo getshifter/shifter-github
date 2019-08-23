@@ -16,5 +16,5 @@ require_once(__DIR__ . '/inc/Parsedown.php');
 require_once(__DIR__ . '/inc/class-gh-auto-updater.php');
 require_once(__DIR__ . '/inc/class-gh-installer.php');
 
-$wk_dir = trailingslashit(sys_get_temp_dir()).basename(__DIR__);
-new Shifter_GH_Installer($wk_dir);
+$work_dir = trailingslashit(sys_get_temp_dir());
+new Shifter_GH_Installer($work_dir);

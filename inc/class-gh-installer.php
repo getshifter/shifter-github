@@ -157,7 +157,7 @@ class Shifter_GH_Installer
             $wp_filesystem->mkdir($this->work_dir);
         }
 
-        $zip_file = $this->work_dir.basename($download_url);
+        $zip_file = tempnam($this->work_dir,'archive_').'.zip';
         $res = wp_remote_get($download_url);
         if (200 !== wp_remote_retrieve_response_code($res)) {
             return new \WP_Error(wp_remote_retrieve_body($res));
