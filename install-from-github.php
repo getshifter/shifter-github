@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name:     Shifter Github Plugin/Theme Installer
- * Plugin URI:      PLUGIN SITE HERE
+ * Plugin URI:      https://github.com/getshifter/shifter-install-helper
  * Description:     Shifter Github Plugin/Theme Installer
  * Author:          Shifter Team
  * Author URI:      https://getshifter.io
@@ -16,4 +16,4 @@ require_once(__DIR__ . '/inc/Parsedown.php');
 require_once(__DIR__ . '/inc/class-gh-auto-updater.php');
 require_once(__DIR__ . '/inc/class-gh-installer.php');
 
-new Shifter_GH_Installer(untrailingslashit(plugin_dir_path(__FILE__)).'/tmp/');
+new Shifter_GH_Installer(sys_get_temp_dir());

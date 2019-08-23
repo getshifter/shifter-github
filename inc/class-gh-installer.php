@@ -15,7 +15,7 @@ class Shifter_GH_Installer
             ];
             update_option(self::OPTION_NAME, $this->options);
         }
-        $this->work_dir = untrailingslashit($work_dir);
+        $this->work_dir = trailingslashit($work_dir);
     
         add_action('init', [$this, 'init']);
         add_action('admin_init', [$this, 'admin_init']);
