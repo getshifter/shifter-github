@@ -45,7 +45,7 @@ class Shifter_GH_Installer
             foreach ($this->options['plugins'] as $slug => $info) {
                 foreach ($this->get_plugins() as $key => $plugin_info) {
                     if ($slug === $key) {
-                        new Miya\WP\GH_Auto_Updater(
+                        new GH_Auto_Updater(
                             $slug,
                             $info['gh_user'],
                             $info['gh_repo'],
@@ -68,7 +68,7 @@ class Shifter_GH_Installer
                 foreach ($this->get_themes() as $key => $theme_info) {
                     if ($slug === $key) {
 /*
-                        new Miya\WP\GH_Auto_Updater(
+                        new GH_Auto_Updater(
                             $slug,
                             $info['gh_user'],
                             $info['gh_repo'],
@@ -99,7 +99,7 @@ class Shifter_GH_Installer
         add_submenu_page('themes.php',  'Add New from GitHub', 'Add New from GitHub', 'upload_themes',  'upload-themes-from-github',  [$this, 'install_themes']);
     }
 
-    private function api_data( $endpoint, $gh_user, $gh_repo, $gh_token = null )
+    private function get_api_data( $endpoint, $gh_user, $gh_repo, $gh_token = null )
     {
         $url = sprintf(
             'https://api.github.com/repos/%1$s/%2$s%3$s',
@@ -122,9 +122,9 @@ class Shifter_GH_Installer
         return json_decode($body);
     }
 
-    private function get_download_url($gh_user, $gh_repo, $gh_token)
+    private function get_download_url($gh_user, $gh_repo, $gh_token = null)
     {
-        $remote_version = $this->api_data('/releases/latest', $gh_user, $gh_repo, $gh_token);
+        $remote_version = $this->get_api_data('/releases/latest', $gh_user, $gh_repo, $gh_token);
         if (! empty($remote_version->assets[0]) && ! empty($remote_version->assets[0]->browser_download_url)) {
             $download_url = $remote_version->assets[0]->browser_download_url;
         } else {
@@ -157,7 +157,7 @@ class Shifter_GH_Installer
             $wp_filesystem->mkdir($this->work_dir);
         }
 
-        $zip_file = tempnam($this->work_dir,'archive_').'.zip';
+        $zip_file = tempnam($this->work_dir, 'archive_').'.zip';
         $res = wp_remote_get($download_url);
         if (200 !== wp_remote_retrieve_response_code($res)) {
             return new \WP_Error(wp_remote_retrieve_body($res));
@@ -168,10 +168,10 @@ class Shifter_GH_Installer
         return $zip_file;
     }
 
-    private function delete_file( $file )
+    private function delete_file($filename)
     {
         $wp_filesystem = $this->wp_filesystem();
-        return $wp_filesystem->delete($file);
+        return $wp_filesystem->delete($filename);
     }
 
     public function install_plugins()
@@ -223,16 +223,18 @@ class Shifter_GH_Installer
 
         // get input value
         $gh_repo_url = sanitize_text_field($_POST['ghrepo']);
-        if (! preg_match('#^https://github.com/([^/]+)/([^/]+)/?.*$#', $gh_repo_url)) {
+        $pattern = '#^(https://github\.com/|git@github\.com:)([^/]+)/([^/]+)/?.*$#';
+        if (! preg_match($pattern, $gh_repo_url)) {
             wp_die('GitHub url is not correct.');
         }
-        $gh_user = preg_replace('#^https://github.com/([^/]+)/([^/]+)/?.*$#', '$1', $gh_repo_url);
-        $gh_repo = preg_replace('#^https://github.com/([^/]+)/([^/]+)/?.*$#', '$2', $gh_repo_url);
+        $gh_user = preg_replace($pattern, '$2', $gh_repo_url);
+        $gh_repo = preg_replace($pattern, '$3', $gh_repo_url);
+        $gh_repo = preg_replace('#\.git$#', '', $gh_repo);
         $gh_token = isset($_POST['ghtoken']) ? sanitize_text_field($_POST['ghtoken']) : null;
 
         // get download URL
         $download_url = $this->get_download_url($gh_user, $gh_repo, $gh_token);
-        $plugin_dir = str_replace('.zip', '', preg_replace('/\?.+$/', '', basename($download_url)));
+        $plugin_dir = $gh_repo;
 
         // install plugin file
         $title = sprintf(
@@ -290,16 +292,18 @@ class Shifter_GH_Installer
 
         // get input value
         $gh_repo_url = sanitize_text_field($_POST['ghrepo']);
-        if (! preg_match('#^https://github.com/([^/]+)/([^/]+)/?.*$#', $gh_repo_url)) {
+        $pattern = '#^(https://github\.com/|git@github\.com:)([^/]+)/([^/]+)/?.*$#';
+        if (! preg_match($pattern, $gh_repo_url)) {
             wp_die('GitHub url is not correct.');
         }
-        $gh_user = preg_replace('#^https://github.com/([^/]+)/([^/]+)/?.*$#', '$1', $gh_repo_url);
-        $gh_repo = preg_replace('#^https://github.com/([^/]+)/([^/]+)/?.*$#', '$2', $gh_repo_url);
+        $gh_user = preg_replace($pattern, '$2', $gh_repo_url);
+        $gh_repo = preg_replace($pattern, '$3', $gh_repo_url);
+        $gh_repo = preg_replace('#\.git$#', '', $gh_repo);
         $gh_token = isset($_POST['ghtoken']) ? sanitize_text_field($_POST['ghtoken']) : null;
 
         // get download URL
         $download_url = $this->get_download_url($gh_user, $gh_repo, $gh_token);
-        $theme_dir = str_replace('.zip', '', preg_replace('/\?.+$/', '', basename($download_url)));
+        $theme_dir = $gh_repo;
 
         // install theme file
         $title = sprintf(
