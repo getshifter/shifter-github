@@ -129,9 +129,9 @@ class Shifter_GH_Installer
     {
         $remote_version = $this->get_api_data('/releases/latest', $gh_user, $gh_repo, $gh_token);
 		if ( is_wp_error( $remote_version )) {
-			echo 'エラーが発生しました。' . '<br>';
-			echo 'エラーコード: ' . $remote_version->get_error_codes()[0] . '<br>';
-			echo 'エラーメッセージ: ' . $remote_version->get_error_message()->message . "\n";
+			echo 'Error:' . '<br>';
+			echo 'Error code: ' . $remote_version->get_error_codes()[0] . '<br>';
+			echo 'Error message: ' . $remote_version->get_error_message()->message . "\n";
 			return;
 		}
         if (! empty($remote_version->assets[0]) && ! empty($remote_version->assets[0]->browser_download_url)) {
