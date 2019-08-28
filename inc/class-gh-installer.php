@@ -116,7 +116,10 @@ class Shifter_GH_Installer
 
         $res = wp_remote_get($api_url);
         if (200 !== wp_remote_retrieve_response_code($res)) {
-            return new \WP_Error(wp_remote_retrieve_body($res));
+            return new \WP_Error(
+					wp_remote_retrieve_response_code($res),
+					json_decode(wp_remote_retrieve_body($res))
+					);
         }
         $body = wp_remote_retrieve_body($res);
         return json_decode($body);
@@ -125,6 +128,12 @@ class Shifter_GH_Installer
     private function get_download_url($gh_user, $gh_repo, $gh_token = null)
     {
         $remote_version = $this->get_api_data('/releases/latest', $gh_user, $gh_repo, $gh_token);
+		if ( is_wp_error( $remote_version )) {
+			echo 'Error:' . '<br>';
+			echo 'Error code: ' . $remote_version->get_error_codes()[0] . '<br>';
+			echo 'Error message: ' . $remote_version->get_error_message()->message . "\n";
+			return;
+		}
         if (! empty($remote_version->assets[0]) && ! empty($remote_version->assets[0]->browser_download_url)) {
             $download_url = $remote_version->assets[0]->browser_download_url;
         } else {
@@ -179,15 +188,26 @@ class Shifter_GH_Installer
         $form_action = self_admin_url('update.php?action=gh-upload-plugin');;
         $submit_button_id = 'install-plugin-gh-submit';
         ?>
+<div class="wrap">
+	<h2><?php _e( 'Shifter Github Plugin Installer' ); ?></h2>
 	<p class="install-help"><?php _e( 'If you have a plugin from GitHub, you may input GitHub repo URL.' ); ?></p>
 	<form method="post" class="shifter-upload-form" action="<?php echo $form_action; ?>">
 		<?php wp_nonce_field( 'plugin-upload' ); ?>
-		<label for="ghrepo"><?php _e( 'GitHub repo URL' ); ?></label>
-		<input type="text" id="ghrepo" name="ghrepo" /><br>
-		<label for="ghtoken"><?php _e( 'GitHub token (option)' ); ?></label>
-		<input type="text" id="ghtoken" name="ghtoken" /><br />
+		<table class="form-table">
+		<tbody>
+			<tr>
+				<th scope="row"><label for="ghrepo"><?php _e( 'GitHub repo URL' ); ?></label></th>
+				<td><input type="text" id="ghrepo" name="ghrepo" class="regular-text" /></td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="ghtoken"><?php _e( 'GitHub token (option)' ); ?></label></th>
+				<td><input type="text" id="ghtoken" name="ghtoken" class="regular-text" /></td>
+			</tr>
+		</tbody>
+		</table>
 		<?php submit_button( __( 'Install Now' ), '', $submit_button_id, false ); ?>
 	</form>
+</div>
 <?php
     }
 
@@ -196,15 +216,26 @@ class Shifter_GH_Installer
         $form_action = self_admin_url('update.php?action=gh-upload-theme');;
         $submit_button_id = 'install-theme-gh-submit';
         ?>
+<div class="wrap">
+	<h2><?php _e( 'Shifter Github Theme Installer' ); ?></h2>
 	<p class="install-help"><?php _e( 'If you have a theme from GitHub, you may input GitHub repo URL.' ); ?></p>
 	<form method="post" class="shifter-upload-form" action="<?php echo $form_action; ?>">
 		<?php wp_nonce_field( 'theme-upload' ); ?>
-		<label for="ghrepo"><?php _e( 'GitHub repo URL' ); ?></label>
-		<input type="text" id="ghrepo" name="ghrepo" /><br>
-		<label for="ghtoken"><?php _e( 'GitHub token (option)' ); ?></label>
-		<input type="text" id="ghtoken" name="ghtoken" /><br />
+		<table class="form-table">
+		<tbody>
+			<tr>
+				<th scope="row"><label for="ghrepo"><?php _e( 'GitHub repo URL' ); ?></label></th>
+				<td><input type="text" id="ghrepo" name="ghrepo" class="regular-text" /></td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="ghtoken"><?php _e( 'GitHub token (option)' ); ?></label></th>
+				<td><input type="text" id="ghtoken" name="ghtoken" class="regular-text" /></td>
+			</tr>
+		</tbody>
+		</table>
 		<?php submit_button( __( 'Install Now' ), '', $submit_button_id, false ); ?>
 	</form>
+</div>
 <?php
     }
 
