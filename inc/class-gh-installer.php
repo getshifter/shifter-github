@@ -179,15 +179,26 @@ class Shifter_GH_Installer
         $form_action = self_admin_url('update.php?action=gh-upload-plugin');;
         $submit_button_id = 'install-plugin-gh-submit';
         ?>
+<div class="wrap">
+	<h2><?php _e( 'Shifter Github Plugin Installer' ); ?></h2>
 	<p class="install-help"><?php _e( 'If you have a plugin from GitHub, you may input GitHub repo URL.' ); ?></p>
 	<form method="post" class="shifter-upload-form" action="<?php echo $form_action; ?>">
 		<?php wp_nonce_field( 'plugin-upload' ); ?>
-		<label for="ghrepo"><?php _e( 'GitHub repo URL' ); ?></label>
-		<input type="text" id="ghrepo" name="ghrepo" /><br>
-		<label for="ghtoken"><?php _e( 'GitHub token (option)' ); ?></label>
-		<input type="text" id="ghtoken" name="ghtoken" /><br />
+		<table class="form-table">
+		<tbody>
+			<tr>
+				<th scope="row"><label for="ghrepo"><?php _e( 'GitHub repo URL' ); ?></label></th>
+				<td><input type="text" id="ghrepo" name="ghrepo" class="regular-text" /></td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="ghtoken"><?php _e( 'GitHub token (option)' ); ?></label></th>
+				<td><input type="text" id="ghtoken" name="ghtoken" class="regular-text" /></td>
+			</tr>
+		</tbody>
+		</table>
 		<?php submit_button( __( 'Install Now' ), '', $submit_button_id, false ); ?>
 	</form>
+</div>
 <?php
     }
 
@@ -196,15 +207,26 @@ class Shifter_GH_Installer
         $form_action = self_admin_url('update.php?action=gh-upload-theme');;
         $submit_button_id = 'install-theme-gh-submit';
         ?>
+<div class="wrap">
+	<h2><?php _e( 'Shifter Github Theme Installer' ); ?></h2>
 	<p class="install-help"><?php _e( 'If you have a theme from GitHub, you may input GitHub repo URL.' ); ?></p>
 	<form method="post" class="shifter-upload-form" action="<?php echo $form_action; ?>">
 		<?php wp_nonce_field( 'theme-upload' ); ?>
-		<label for="ghrepo"><?php _e( 'GitHub repo URL' ); ?></label>
-		<input type="text" id="ghrepo" name="ghrepo" /><br>
-		<label for="ghtoken"><?php _e( 'GitHub token (option)' ); ?></label>
-		<input type="text" id="ghtoken" name="ghtoken" /><br />
+		<table class="form-table">
+		<tbody>
+			<tr>
+				<th scope="row"><label for="ghrepo"><?php _e( 'GitHub repo URL' ); ?></label></th>
+				<td><input type="text" id="ghrepo" name="ghrepo" class="regular-text" /></td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="ghtoken"><?php _e( 'GitHub token (option)' ); ?></label></th>
+				<td><input type="text" id="ghtoken" name="ghtoken" class="regular-text" /></td>
+			</tr>
+		</tbody>
+		</table>
 		<?php submit_button( __( 'Install Now' ), '', $submit_button_id, false ); ?>
 	</form>
+</div>
 <?php
     }
 
