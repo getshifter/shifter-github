@@ -12,7 +12,7 @@
  *
  * @package         Gh_Auto_Updater_Example
  */
-require_once(__DIR__ . '/inc/Parsedown.php');
+require_once(__DIR__ . '/vendor/autoload.php' );
 require_once(__DIR__ . '/inc/class-gh-auto-updater.php');
 require_once(__DIR__ . '/inc/class-gh-installer.php');
 
