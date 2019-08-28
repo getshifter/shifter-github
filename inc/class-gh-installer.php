@@ -132,7 +132,7 @@ class Shifter_GH_Installer
                 'https://github.com/%s/%s/archive/%s.zip',
                 $gh_user,
                 $gh_repo,
-                $remote_version->tag_name
+                'master'
             );
         }
         return $download_url;
