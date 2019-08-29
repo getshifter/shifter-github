@@ -130,9 +130,6 @@ class Shifter_GH_Installer
     private function get_download_url($gh_user, $gh_repo, $gh_token = null)
     {
         $remote_version = $this->get_api_data('/releases/latest', $gh_user, $gh_repo, $gh_token);
-        if (is_wp_error($remote_version)) {
-            return $remote_version;
-        }
         if (! empty($remote_version->assets[0]) && ! empty($remote_version->assets[0]->browser_download_url)) {
             $download_url = $remote_version->assets[0]->browser_download_url;
         } else {
@@ -168,7 +165,10 @@ class Shifter_GH_Installer
         $zip_file = tempnam($this->work_dir, 'archive_').'.zip';
         $res = wp_remote_get($download_url);
         if (200 !== wp_remote_retrieve_response_code($res)) {
-            return new \WP_Error(wp_remote_retrieve_body($res));
+            return new \WP_Error(
+                wp_remote_retrieve_response_code($res),
+                wp_remote_retrieve_body($res)
+            );
         }
         $body = wp_remote_retrieve_body($res);
         $wp_filesystem->put_contents($zip_file, $body, defined('FS_CHMOD_FILE') ? FS_CHMOD_FILE : '0755');
@@ -277,7 +277,7 @@ class Shifter_GH_Installer
         // get download URL
         $download_url = $this->get_download_url($gh_user, $gh_repo, $gh_token);
         if (is_wp_error($download_url)) {
-            $errormsg  = 'Error:' . '<br>';
+            $errormsg  = 'Error: ' . $gh_repo_url . '<br>';
             $errormsg .= 'Error code: ' . $download_url->get_error_codes()[0] . '<br>';
             $errormsg .= 'Error message: ' . $download_url->get_error_message()->message . "\n";
             wp_die($errormsg);
@@ -287,7 +287,10 @@ class Shifter_GH_Installer
         // get zip ball & install
         $zip_file = $this->get_zip_ball($download_url);
         if (is_wp_error($zip_file)) {
-            wp_die($zip_file->get_error_message());
+            $errormsg  = 'Error: ' . $download_url . '<br>';
+            $errormsg .= 'Error code: ' . $zip_file->get_error_codes()[0] . '<br>';
+            $errormsg .= 'Error message: ' . $zip_file->get_error_message()->message . "\n";
+            wp_die($errormsg);
         }
         $result   = $upgrader->install($zip_file);
 
@@ -351,7 +354,7 @@ class Shifter_GH_Installer
         // get download URL
         $download_url = $this->get_download_url($gh_user, $gh_repo, $gh_token);
         if (is_wp_error($download_url)) {
-            $errormsg  = 'Error:' . '<br>';
+            $errormsg  = 'Error: ' . $gh_repo_url . '<br>';
             $errormsg .= 'Error code: ' . $download_url->get_error_codes()[0] . '<br>';
             $errormsg .= 'Error message: ' . $download_url->get_error_message()->message . "\n";
             wp_die($errormsg);
@@ -361,7 +364,10 @@ class Shifter_GH_Installer
         // get zip ball & install
         $zip_file = $this->get_zip_ball($download_url);
         if (is_wp_error($zip_file)) {
-            wp_die($zip_file->get_error_message()->message);
+            $errormsg  = 'Error: ' . $download_url . '<br>';
+            $errormsg .= 'Error code: ' . $zip_file->get_error_codes()[0] . '<br>';
+            $errormsg .= 'Error message: ' . $zip_file->get_error_message()->message . "\n";
+            wp_die($errormsg);
         }
         $result   = $upgrader->install($zip_file);
 
