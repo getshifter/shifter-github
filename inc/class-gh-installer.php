@@ -204,7 +204,7 @@ class Shifter_GH_Installer
 			</tr>
 		</tbody>
 		</table>
-		<?php submit_button( __( 'Install Now' ), '', $submit_button_id, false ); ?>
+		<?php submit_button( __( 'Install Now' ), 'primary', $submit_button_id, false ); ?>
 	</form>
 </div>
 <?php
@@ -232,7 +232,7 @@ class Shifter_GH_Installer
 			</tr>
 		</tbody>
 		</table>
-		<?php submit_button( __( 'Install Now' ), '', $submit_button_id, false ); ?>
+		<?php submit_button( __( 'Install Now' ), 'primary', $submit_button_id, false ); ?>
 	</form>
 </div>
 <?php
