@@ -7,10 +7,8 @@
  * Author URI:      https://getshifter.io
  * Text Domain:     shifter-github-pull
  * Domain Path:     /languages
- * Version:         0.0.2
+ * Version:         {release version}
  * License:         GPLv2 or later
- *
- * @package         Gh_Auto_Updater_Example
  */
 require_once(__DIR__ . '/vendor/autoload.php' );
 require_once(__DIR__ . '/inc/class-gh-auto-updater.php');

@@ -11,11 +11,6 @@
 class GH_Auto_Updater
 {
 	/**
-	 * @var string $type
-	 */
-	private $type;
-
-	/**
 	 * @var string $gh_user
 	 */
 	private $gh_user;
@@ -38,26 +33,23 @@ class GH_Auto_Updater
 	/**
 	 * Activate automatic update with GitHub API.
 	 *
-	 * @param string $type        'plugin' or 'theme'.
+	 * @param string $type        'plugins' or 'themes'.
 	 * @param string $slug        The base name of the like `my-plugin/plugin.php`.
 	 * @param string $gh_user     The user name of the plugin on GitHub.
 	 * @param string $gh_repo     The repository name of the plugin on GitHub.
 	 */
 	public function __construct( $type, $slug, $gh_user, $gh_repo, $gh_token = null )
 	{
-		$this->type     = $type;
 		$this->gh_user  = $gh_user;
 		$this->gh_repo  = $gh_repo;
 		$this->gh_token = !empty($gh_token) ? $gh_token : (defined('GITHUB_ACCESS_TOKEN') && GITHUB_ACCESS_TOKEN);
 		$this->slug     = $slug;
 
-		if ('plugin' === $this->type) {
-			add_filter( 'pre_set_site_transient_update_plugins', array( $this, 'pre_set_site_transient_update_plugins' ) );
-			add_filter( 'plugins_api', array( $this, 'plugins_api' ), 10, 3 );
-		} else if ('theme' === $this->type) {
-			add_filter( 'pre_set_site_transient_update_themes', array( $this, 'pre_set_site_transient_update_themes' ) );
-			add_filter( 'themes_api', array( $this, 'themes_api' ), 10, 3 );
+		if (!preg_match('/^(plugins|themes)$/',$type)) {
+			$type = 'plugins';
 		}
+		add_filter( 'pre_set_site_transient_update_'.$type, array( $this, 'pre_set_site_transient_update_'.$type ) );
+		add_filter( $type.'_api', array( $this, $type.'_api' ), 10, 3 );
 		add_filter( 'upgrader_source_selection', array( $this, 'upgrader_source_selection' ), 1 );
 		add_action( 'admin_head', array( $this, "admin_head" ) );
 	}
@@ -78,7 +70,7 @@ class GH_Auto_Updater
 	 */
 	public function upgrader_source_selection( $source )
 	{
-		if(  strpos( $source, $this->gh_repo ) === false ) {
+		if( strpos( $source, $this->gh_repo ) === false ) {
 			return $source;
 		}
 
@@ -333,6 +325,9 @@ class GH_Auto_Updater
 	 */
 	private function get_plugin_info()
 	{
+		if (! function_exists('get_plugin_data')) {
+            require_once(ABSPATH.'wp-admin/includes/plugin.php');
+        }
 		$plugin = get_plugin_data( WP_PLUGIN_DIR . '/' . $this->slug );
 		$info = New \stdClass();
 		$info->name = isset($plugin['Name']) ? $plugin['Name'] : null;

@@ -12,6 +12,11 @@ jobs:
     - uses: actions/checkout@v1
     - name: composer install
       run: make composer
+    - name: add version
+      run: |
+        export CREATE_EVENT_REF_TYPE=$(jq --raw-output .ref_type "$GITHUB_EVENT_PATH")
+        export TAGNAME=$(jq --raw-output .ref "$GITHUB_EVENT_PATH")
+        sed -i -e "s/{release version}/${TAGNAME}/g" install-from-github.php
     - name: create archive
       run: make archive
     - name: upload
@@ -22,4 +27,4 @@ jobs:
         export CREATE_EVENT_REF_TYPE=$(jq --raw-output .ref_type "$GITHUB_EVENT_PATH")
         export TAGNAME=$(jq --raw-output .ref "$GITHUB_EVENT_PATH")
         go get -u github.com/tcnksm/ghr
-        ${GOPATH}/bin/ghr -prerelease -replace ${TAGNAME} shifter-wp-git.zip
+        ${GOPATH}/bin/ghr -replace ${TAGNAME} shifter-wp-git.zip

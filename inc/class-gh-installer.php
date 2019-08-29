@@ -162,7 +162,8 @@ class Shifter_GH_Installer
             $wp_filesystem->mkdir($this->work_dir);
         }
 
-        $zip_file = tempnam($this->work_dir, 'archive_').'.zip';
+        $work_dir = trailingslashit($this->work_dir);
+        $zip_file = $work_dir . basename(preg_replace('/\?.*$/','',$download_url));
         $res = wp_remote_get($download_url);
         if (200 !== wp_remote_retrieve_response_code($res)) {
             return new \WP_Error(
@@ -179,7 +180,8 @@ class Shifter_GH_Installer
     private function delete_file($filename)
     {
         $wp_filesystem = $this->wp_filesystem();
-        return $wp_filesystem->delete($filename);
+        $wp_filesystem->delete($filename);
+        rmdir(dirname($filename));
     }
 
     public function install_plugins()
