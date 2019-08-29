@@ -7,7 +7,7 @@
  * Author URI:      https://getshifter.io
  * Text Domain:     shifter-github-pull
  * Domain Path:     /languages
- * Version:         nightly
+ * Version:         0.0.2
  * License:         GPLv2 or later
  *
  * @package         Gh_Auto_Updater_Example
