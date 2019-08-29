@@ -2,6 +2,8 @@
 class Shifter_GH_Installer
 {
     const   OPTION_NAME = 'shifter_gh_pull_targets';
+    const   GITHUB_URL_PATTERN = '#^(https://github\.com/|git@github\.com:)([^/]+)/([^/]+)/?.*$#';
+
     private $options;
     private $work_dir;
 
@@ -42,16 +44,17 @@ class Shifter_GH_Installer
     {
         if (isset($this->options['plugins'])) {
             $installed = [];
-            foreach ($this->options['plugins'] as $slug => $info) {
+            foreach ($this->options['plugins'] as $slug => $github_info) {
                 foreach ($this->get_plugins() as $key => $plugin_info) {
                     if ($slug === $key) {
                         new GH_Auto_Updater(
+                            'plugins',
                             $slug,
-                            $info['gh_user'],
-                            $info['gh_repo'],
-                            isset($info['gh_token']) ? $info['gh_token'] : null
+                            $github_info['gh_user'],
+                            $github_info['gh_repo'],
+                            isset($github_info['gh_token']) ? $github_info['gh_token'] : null
                         );
-                        $installed[$slug] = $info;
+                        $installed[$slug] = $github_info;
                         break;
                     }
                 }
@@ -64,17 +67,16 @@ class Shifter_GH_Installer
 
         if (isset($this->options['themes'])) {
             $installed = [];
-            foreach ($this->options['themes'] as $slug => $info) {
+            foreach ($this->options['themes'] as $slug => $github_info) {
                 foreach ($this->get_themes() as $key => $theme_info) {
                     if ($slug === $key) {
-/*
                         new GH_Auto_Updater(
+                            'theme',
                             $slug,
-                            $info['gh_user'],
-                            $info['gh_repo'],
-                            isset($info['gh_token']) ? $info['gh_token'] : null
+                            $github_info['gh_user'],
+                            $github_info['gh_repo'],
+                            isset($github_info['gh_token']) ? $github_info['gh_token'] : null
                         );
-*/
                         $installed[$slug] = $info;
                         break;
                     }
@@ -116,7 +118,10 @@ class Shifter_GH_Installer
 
         $res = wp_remote_get($api_url);
         if (200 !== wp_remote_retrieve_response_code($res)) {
-            return new \WP_Error(wp_remote_retrieve_body($res));
+            return new \WP_Error(
+                wp_remote_retrieve_response_code($res),
+                json_decode(wp_remote_retrieve_body($res))
+            );
         }
         $body = wp_remote_retrieve_body($res);
         return json_decode($body);
@@ -125,6 +130,9 @@ class Shifter_GH_Installer
     private function get_download_url($gh_user, $gh_repo, $gh_token = null)
     {
         $remote_version = $this->get_api_data('/releases/latest', $gh_user, $gh_repo, $gh_token);
+        if (is_wp_error($remote_version)) {
+            return $remote_version;
+        }
         if (! empty($remote_version->assets[0]) && ! empty($remote_version->assets[0]->browser_download_url)) {
             $download_url = $remote_version->assets[0]->browser_download_url;
         } else {
@@ -132,7 +140,7 @@ class Shifter_GH_Installer
                 'https://github.com/%s/%s/archive/%s.zip',
                 $gh_user,
                 $gh_repo,
-                $remote_version->tag_name
+                'master'
             );
         }
         return $download_url;
@@ -179,15 +187,26 @@ class Shifter_GH_Installer
         $form_action = self_admin_url('update.php?action=gh-upload-plugin');;
         $submit_button_id = 'install-plugin-gh-submit';
         ?>
+<div class="wrap">
+	<h2><?php _e( 'Shifter Github Plugin Installer' ); ?></h2>
 	<p class="install-help"><?php _e( 'If you have a plugin from GitHub, you may input GitHub repo URL.' ); ?></p>
 	<form method="post" class="shifter-upload-form" action="<?php echo $form_action; ?>">
 		<?php wp_nonce_field( 'plugin-upload' ); ?>
-		<label for="ghrepo"><?php _e( 'GitHub repo URL' ); ?></label>
-		<input type="text" id="ghrepo" name="ghrepo" /><br>
-		<label for="ghtoken"><?php _e( 'GitHub token (option)' ); ?></label>
-		<input type="text" id="ghtoken" name="ghtoken" /><br />
-		<?php submit_button( __( 'Install Now' ), '', $submit_button_id, false ); ?>
+		<table class="form-table">
+		<tbody>
+			<tr>
+				<th scope="row"><label for="ghrepo"><?php _e( 'GitHub repo URL' ); ?></label></th>
+				<td><input type="text" id="ghrepo" name="ghrepo" class="regular-text" /></td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="ghtoken"><?php _e( 'GitHub token (option)' ); ?></label></th>
+				<td><input type="text" id="ghtoken" name="ghtoken" class="regular-text" /></td>
+			</tr>
+		</tbody>
+		</table>
+		<?php submit_button( __( 'Install Now' ), 'primary', $submit_button_id, false ); ?>
 	</form>
+</div>
 <?php
     }
 
@@ -196,15 +215,26 @@ class Shifter_GH_Installer
         $form_action = self_admin_url('update.php?action=gh-upload-theme');;
         $submit_button_id = 'install-theme-gh-submit';
         ?>
+<div class="wrap">
+	<h2><?php _e( 'Shifter Github Theme Installer' ); ?></h2>
 	<p class="install-help"><?php _e( 'If you have a theme from GitHub, you may input GitHub repo URL.' ); ?></p>
 	<form method="post" class="shifter-upload-form" action="<?php echo $form_action; ?>">
 		<?php wp_nonce_field( 'theme-upload' ); ?>
-		<label for="ghrepo"><?php _e( 'GitHub repo URL' ); ?></label>
-		<input type="text" id="ghrepo" name="ghrepo" /><br>
-		<label for="ghtoken"><?php _e( 'GitHub token (option)' ); ?></label>
-		<input type="text" id="ghtoken" name="ghtoken" /><br />
-		<?php submit_button( __( 'Install Now' ), '', $submit_button_id, false ); ?>
+		<table class="form-table">
+		<tbody>
+			<tr>
+				<th scope="row"><label for="ghrepo"><?php _e( 'GitHub repo URL' ); ?></label></th>
+				<td><input type="text" id="ghrepo" name="ghrepo" class="regular-text" /></td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="ghtoken"><?php _e( 'GitHub token (option)' ); ?></label></th>
+				<td><input type="text" id="ghtoken" name="ghtoken" class="regular-text" /></td>
+			</tr>
+		</tbody>
+		</table>
+		<?php submit_button( __( 'Install Now' ), 'primary', $submit_button_id, false ); ?>
 	</form>
+</div>
 <?php
     }
 
@@ -223,18 +253,13 @@ class Shifter_GH_Installer
 
         // get input value
         $gh_repo_url = sanitize_text_field($_POST['ghrepo']);
-        $pattern = '#^(https://github\.com/|git@github\.com:)([^/]+)/([^/]+)/?.*$#';
-        if (! preg_match($pattern, $gh_repo_url)) {
+        if (! preg_match(self::GITHUB_URL_PATTERN, $gh_repo_url)) {
             wp_die('GitHub url is not correct.');
         }
-        $gh_user = preg_replace($pattern, '$2', $gh_repo_url);
-        $gh_repo = preg_replace($pattern, '$3', $gh_repo_url);
+        $gh_user = preg_replace(self::GITHUB_URL_PATTERN, '$2', $gh_repo_url);
+        $gh_repo = preg_replace(self::GITHUB_URL_PATTERN, '$3', $gh_repo_url);
         $gh_repo = preg_replace('#\.git$#', '', $gh_repo);
         $gh_token = isset($_POST['ghtoken']) ? sanitize_text_field($_POST['ghtoken']) : null;
-
-        // get download URL
-        $download_url = $this->get_download_url($gh_user, $gh_repo, $gh_token);
-        $plugin_dir = $gh_repo;
 
         // install plugin file
         $title = sprintf(
@@ -249,6 +274,16 @@ class Shifter_GH_Installer
         $type  = 'upload'; //Install plugin type, From Web or an Upload.
         $upgrader = new Plugin_Upgrader(new Plugin_Installer_Skin(compact('type', 'title', 'nonce', 'url')));
 
+        // get download URL
+        $download_url = $this->get_download_url($gh_user, $gh_repo, $gh_token);
+        if (is_wp_error($download_url)) {
+            $errormsg  = 'Error:' . '<br>';
+            $errormsg .= 'Error code: ' . $download_url->get_error_codes()[0] . '<br>';
+            $errormsg .= 'Error message: ' . $download_url->get_error_message()->message . "\n";
+            wp_die($errormsg);
+        }
+        $plugin_dir = $gh_repo;
+
         // get zip ball & install
         $zip_file = $this->get_zip_ball($download_url);
         if (is_wp_error($zip_file)) {
@@ -262,7 +297,7 @@ class Shifter_GH_Installer
         // get plugin info
         $plugin_slug = $plugin_dir;
         foreach ($this->get_plugins() as $key => $info) {
-            if (preg_match('#^'.preg_quote($plugin_dir).'/#', $key)) {
+            if (preg_match('#^'.preg_quote($plugin_dir).'#', $key)) {
                 $plugin_slug = $key;
                 break;
             }
@@ -292,18 +327,13 @@ class Shifter_GH_Installer
 
         // get input value
         $gh_repo_url = sanitize_text_field($_POST['ghrepo']);
-        $pattern = '#^(https://github\.com/|git@github\.com:)([^/]+)/([^/]+)/?.*$#';
-        if (! preg_match($pattern, $gh_repo_url)) {
+        if (! preg_match(self::GITHUB_URL_PATTERN, $gh_repo_url)) {
             wp_die('GitHub url is not correct.');
         }
-        $gh_user = preg_replace($pattern, '$2', $gh_repo_url);
-        $gh_repo = preg_replace($pattern, '$3', $gh_repo_url);
+        $gh_user = preg_replace(self::GITHUB_URL_PATTERN, '$2', $gh_repo_url);
+        $gh_repo = preg_replace(self::GITHUB_URL_PATTERN, '$3', $gh_repo_url);
         $gh_repo = preg_replace('#\.git$#', '', $gh_repo);
         $gh_token = isset($_POST['ghtoken']) ? sanitize_text_field($_POST['ghtoken']) : null;
-
-        // get download URL
-        $download_url = $this->get_download_url($gh_user, $gh_repo, $gh_token);
-        $theme_dir = $gh_repo;
 
         // install theme file
         $title = sprintf(
@@ -318,10 +348,20 @@ class Shifter_GH_Installer
         $type  = 'upload'; //Install plugin type, From Web or an Upload.
         $upgrader = new Theme_Upgrader(new Theme_Installer_Skin(compact('type', 'title', 'nonce', 'url')));
 
+        // get download URL
+        $download_url = $this->get_download_url($gh_user, $gh_repo, $gh_token);
+        if (is_wp_error($download_url)) {
+            $errormsg  = 'Error:' . '<br>';
+            $errormsg .= 'Error code: ' . $download_url->get_error_codes()[0] . '<br>';
+            $errormsg .= 'Error message: ' . $download_url->get_error_message()->message . "\n";
+            wp_die($errormsg);
+        }
+        $theme_dir = $gh_repo;
+
         // get zip ball & install
         $zip_file = $this->get_zip_ball($download_url);
         if (is_wp_error($zip_file)) {
-            wp_die($zip_file->get_error_message());
+            wp_die($zip_file->get_error_message()->message);
         }
         $result   = $upgrader->install($zip_file);
 
@@ -330,12 +370,6 @@ class Shifter_GH_Installer
 
         // get theme info
         $theme_slug = $theme_dir;
-        foreach ($this->get_themes() as $key => $info) {
-            if (preg_match('#^'.preg_quote($theme_dir).'#', $key)) {
-                $theme_slug = $key;
-                break;
-            }
-        }
         $this->options['themes'][$theme_slug] = [
             'gh_user'  => $gh_user,
             'gh_repo'  => $gh_repo,
