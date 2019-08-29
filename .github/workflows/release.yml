@@ -1,0 +1,25 @@
+name: release
+on:
+  create:
+    tags:
+    - *.*.*
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: composer install
+      run: make composer
+    - name: create archive
+      run: make archive
+    - name: upload
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GOPATH: /home/runner/go
+      run: |
+        export CREATE_EVENT_REF_TYPE=$(jq --raw-output .ref_type "$GITHUB_EVENT_PATH")
+        export TAGNAME=$(jq --raw-output .ref "$GITHUB_EVENT_PATH")
+        go get -u github.com/tcnksm/ghr
+        ${GOPATH}/bin/ghr -prerelease -replace ${TAGNAME} shifter-wp-git.zip
