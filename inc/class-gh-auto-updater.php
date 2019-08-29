@@ -99,7 +99,7 @@ class GH_Auto_Updater
 
 		$current_version = $this->get_plugin_info();
 
-		return $this->get_newer_version( $transient, $current_version, $remote_version );
+		return $this->get_newer_version($transient, $current_version, $remote_version, 'plugins');
 	}
 
 	/**
@@ -121,7 +121,7 @@ class GH_Auto_Updater
 
 		$current_version = $this->get_theme_info();
 
-		return $this->get_newer_version( $transient, $current_version, $remote_version );
+		return $this->get_newer_version($transient, $current_version, $remote_version, 'themes');
 	}
 
 	/**
@@ -238,7 +238,7 @@ class GH_Auto_Updater
 		$obj = new \stdClass();
 		$obj->slug = $this->slug;
 		$obj->name = esc_html( $current_version->name );
-		$obj->plugin_name = esc_html( $current_version->name );
+		$obj->theme_name = esc_html( $current_version->name );
 		$obj->author = sprintf(
 			'<a href="%1$s" target="_blank">%2$s</a>',
 			esc_url( $remote_version->author->html_url ),
@@ -280,16 +280,26 @@ class GH_Auto_Updater
 	 * @param object $remote_version  The object of the plugin which is gotten from the GitHub.
 	 * @return object The transient value that contains the new version of the plugin.
 	 */
-	private function get_newer_version( $transient, $current_version, $remote_version )
+	private function get_newer_version( $transient, $current_version, $remote_version, $type = 'plugins' )
 	{
 		if ( version_compare( $current_version->version, $remote_version->tag_name, '<' ) ) {
-			$obj = new \stdClass();
-			$obj->slug = $this->slug;
-			$obj->plugin = $this->slug;
-			$obj->new_version = $remote_version->tag_name;
-			$obj->url = $remote_version->html_url;
-			$obj->package = $this->get_download_url( $remote_version );
-			$transient->response[ $this->slug ] = $obj;
+			if ('plugins' === $type) {
+				$obj = new \stdClass();
+				$obj->slug = $this->slug;
+				$obj->plugin = $this->slug;
+				$obj->new_version = $remote_version->tag_name;
+				$obj->url = $remote_version->html_url;
+				$obj->package = $this->get_download_url( $remote_version );
+				$transient->response[ $this->slug ] = $obj;
+			} else if ('themes' === $type) {
+				$array = [];
+				$array['slug'] = $this->slug;
+				$array['theme'] = $this->slug;
+				$array['new_version'] = $remote_version->tag_name;
+				$array['url'] = $remote_version->html_url;
+				$array['package'] = $this->get_download_url( $remote_version );
+				$transient->response[ $this->slug ] = $array;
+			}
 		}
 
 		return $transient;
