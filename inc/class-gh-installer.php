@@ -1,13 +1,15 @@
 <?php
+require_once(__DIR__ . '/class-gh-auto-updater-plugins.php' );
+require_once(__DIR__ . '/class-gh-auto-updater-themes.php' );
+
 class Shifter_GH_Installer
 {
     const   OPTION_NAME = 'shifter_gh_pull_targets';
     const   GITHUB_URL_PATTERN = '#^(https://github\.com/|git@github\.com:)([^/]+)/([^/]+)/?.*$#';
 
     private $options;
-    private $work_dir;
 
-    public function __construct( $work_dir )
+    public function __construct()
     {
         $this->options = get_option(self::OPTION_NAME);
         if (!is_array($this->options)) {
@@ -17,8 +19,10 @@ class Shifter_GH_Installer
             ];
             update_option(self::OPTION_NAME, $this->options);
         }
-        $this->work_dir = trailingslashit($work_dir);
+    }
 
+    public function add_hooks()
+    {
         add_action('init', [$this, 'init']);
         add_action('admin_init', [$this, 'admin_init']);
         add_action('admin_menu', [$this, 'admin_menu'], 102);
@@ -42,13 +46,14 @@ class Shifter_GH_Installer
 
     public function init()
     {
+        $updater = [];
+
         if (isset($this->options['plugins'])) {
             $installed = [];
             foreach ($this->options['plugins'] as $slug => $github_info) {
                 foreach ($this->get_plugins() as $key => $plugin_info) {
                     if ($slug === $key) {
-                        new GH_Auto_Updater(
-                            'plugins',
+                        $updater[$slug] = new GH_Auto_Updater_Plugins(
                             $slug,
                             $github_info['gh_user'],
                             $github_info['gh_repo'],
@@ -70,8 +75,7 @@ class Shifter_GH_Installer
             foreach ($this->options['themes'] as $slug => $github_info) {
                 foreach ($this->get_themes() as $key => $theme_info) {
                     if ($slug === $key) {
-                        new GH_Auto_Updater(
-                            'theme',
+                        $updater[$slug] = new GH_Auto_Updater_Themes(
                             $slug,
                             $github_info['gh_user'],
                             $github_info['gh_repo'],
@@ -91,6 +95,11 @@ class Shifter_GH_Installer
 
     public function admin_init()
     {
+        //  Echo the style for plugin's detail popup screen.
+        add_action( 'admin_head', function(){
+            echo '<style>#plugin-information .section img{ max-width: 100%; height: auto; }</style>';
+        } );
+
         add_action('update-custom_gh-upload-plugin', [$this, 'plugin_upload']);
         add_action('update-custom_gh-upload-theme',  [$this, 'theme_upload']);
     }
@@ -99,89 +108,6 @@ class Shifter_GH_Installer
     {
         add_submenu_page('plugins.php', 'Add New from GitHub', 'Add New from GitHub', 'upload_plugins', 'upload-plugins-from-github', [$this, 'install_plugins']);
         add_submenu_page('themes.php',  'Add New from GitHub', 'Add New from GitHub', 'upload_themes',  'upload-themes-from-github',  [$this, 'install_themes']);
-    }
-
-    private function get_api_data( $endpoint, $gh_user, $gh_repo, $gh_token = null )
-    {
-        $url = sprintf(
-            'https://api.github.com/repos/%1$s/%2$s%3$s',
-            $gh_user,
-            $gh_repo,
-            $endpoint
-        );
-        if ($gh_token) {
-            $url = add_query_arg( array(
-                'access_token' => $gh_token
-            ), $url );
-        }
-        $api_url = esc_url_raw($url, 'https');
-
-        $res = wp_remote_get($api_url);
-        if (200 !== wp_remote_retrieve_response_code($res)) {
-            return new \WP_Error(
-                wp_remote_retrieve_response_code($res),
-                json_decode(wp_remote_retrieve_body($res))
-            );
-        }
-        $body = wp_remote_retrieve_body($res);
-        return json_decode($body);
-    }
-
-    private function get_download_url($gh_user, $gh_repo, $gh_token = null)
-    {
-        $remote_version = $this->get_api_data('/releases/latest', $gh_user, $gh_repo, $gh_token);
-        if (! empty($remote_version->assets[0]) && ! empty($remote_version->assets[0]->browser_download_url)) {
-            $download_url = $remote_version->assets[0]->browser_download_url;
-        } else {
-            $download_url = sprintf(
-                'https://github.com/%s/%s/archive/%s.zip',
-                $gh_user,
-                $gh_repo,
-                'master'
-            );
-        }
-        return $download_url;
-    }
-
-    private function wp_filesystem()
-    {
-        global $wp_filesystem;
-        if (empty($wp_filesystem)) {
-            require_once(ABSPATH.'wp-admin/includes/file.php');
-            WP_Filesystem();
-        }
-        return $wp_filesystem;
-    }
-
-    // get zip ball
-    private function get_zip_ball($download_url)
-    {
-        $wp_filesystem = $this->wp_filesystem();
-
-        if (!$wp_filesystem->is_dir($this->work_dir)) {
-            $wp_filesystem->mkdir($this->work_dir);
-        }
-
-        $work_dir = trailingslashit($this->work_dir);
-        $zip_file = $work_dir . basename(preg_replace('/\?.*$/','',$download_url));
-        $res = wp_remote_get($download_url);
-        if (200 !== wp_remote_retrieve_response_code($res)) {
-            return new \WP_Error(
-                wp_remote_retrieve_response_code($res),
-                wp_remote_retrieve_body($res)
-            );
-        }
-        $body = wp_remote_retrieve_body($res);
-        $wp_filesystem->put_contents($zip_file, $body, defined('FS_CHMOD_FILE') ? FS_CHMOD_FILE : '0755');
-
-        return $zip_file;
-    }
-
-    private function delete_file($filename)
-    {
-        $wp_filesystem = $this->wp_filesystem();
-        $wp_filesystem->delete($filename);
-        rmdir(dirname($filename));
     }
 
     public function install_plugins()
@@ -251,7 +177,6 @@ class Shifter_GH_Installer
         $title        = __('Upload Plugin');
         $parent_file  = 'plugins.php';
         $submenu_file = 'plugins.php?page=upload-plugins-from-github';
-        require_once(ABSPATH.'wp-admin/admin-header.php');
 
         // get input value
         $gh_repo_url = sanitize_text_field($_POST['ghrepo']);
@@ -264,40 +189,24 @@ class Shifter_GH_Installer
         $gh_token = isset($_POST['ghtoken']) ? sanitize_text_field($_POST['ghtoken']) : null;
 
         // install plugin file
-        $title = sprintf(
+        $installer = new GH_Auto_Updater_Plugins($gh_repo, $gh_user, $gh_repo, $gh_token );
+        $upgrader_args = [];
+        $upgrader_args['title'] = sprintf(
             __('Installing Plugin from github: %s'),
             esc_html($gh_user.'/'.$gh_repo)
         );
-        $nonce = 'plugin-upload';
-        $url   = add_query_arg(
+        $upgrader_args['url'] = add_query_arg(
             ['action' => 'upload-plugin', 'plugin' => urlencode($gh_repo)],
             'update.php'
         );
-        $type  = 'upload'; //Install plugin type, From Web or an Upload.
-        $upgrader = new Plugin_Upgrader(new Plugin_Installer_Skin(compact('type', 'title', 'nonce', 'url')));
-
-        // get download URL
-        $download_url = $this->get_download_url($gh_user, $gh_repo, $gh_token);
-        if (is_wp_error($download_url)) {
-            $errormsg  = 'Error: ' . $gh_repo_url . '<br>';
-            $errormsg .= 'Error code: ' . $download_url->get_error_codes()[0] . '<br>';
-            $errormsg .= 'Error message: ' . $download_url->get_error_message()->message . "\n";
-            wp_die($errormsg);
+        $result = $installer->install( $title, $parent_file, $submenu_file, $upgrader_args );
+        if (is_wp_error($result)) {
+            $errormsg  = 'Error: ' . $result . '<br>';
+            $errormsg .= 'Error code: ' . $result->get_error_codes()[0] . '<br>';
+            $errormsg .= 'Error message: ' . $result->get_error_message()->message . "\n";
+            wp_die($result);
         }
         $plugin_dir = $gh_repo;
-
-        // get zip ball & install
-        $zip_file = $this->get_zip_ball($download_url);
-        if (is_wp_error($zip_file)) {
-            $errormsg  = 'Error: ' . $download_url . '<br>';
-            $errormsg .= 'Error code: ' . $zip_file->get_error_codes()[0] . '<br>';
-            $errormsg .= 'Error message: ' . $zip_file->get_error_message()->message . "\n";
-            wp_die($errormsg);
-        }
-        $result   = $upgrader->install($zip_file);
-
-        // remove zip file
-        $this->delete_file($zip_file);
 
         // get plugin info
         $plugin_slug = $plugin_dir;
@@ -313,8 +222,6 @@ class Shifter_GH_Installer
             'gh_token' => $gh_token,
         ];
         update_option(self::OPTION_NAME, $this->options);
-
-        include(ABSPATH.'wp-admin/admin-footer.php');
     }
 
     public function theme_upload()
@@ -341,40 +248,24 @@ class Shifter_GH_Installer
         $gh_token = isset($_POST['ghtoken']) ? sanitize_text_field($_POST['ghtoken']) : null;
 
         // install theme file
-        $title = sprintf(
+        $installer = new GH_Auto_Updater_Themes($gh_repo, $gh_user, $gh_repo, $gh_token );
+        $upgrader_args = [];
+        $upgrader_args['title'] = sprintf(
             __('Installing Theme from github: %s'),
             esc_html($gh_user.'/'.$gh_repo)
         );
-        $nonce = 'theme-upload';
-        $url   = add_query_arg(
+        $upgrader_args['url'] = add_query_arg(
             ['action' => 'upload-theme', 'package' => urlencode($gh_repo)],
             'update.php'
         );
-        $type  = 'upload'; //Install plugin type, From Web or an Upload.
-        $upgrader = new Theme_Upgrader(new Theme_Installer_Skin(compact('type', 'title', 'nonce', 'url')));
-
-        // get download URL
-        $download_url = $this->get_download_url($gh_user, $gh_repo, $gh_token);
-        if (is_wp_error($download_url)) {
-            $errormsg  = 'Error: ' . $gh_repo_url . '<br>';
-            $errormsg .= 'Error code: ' . $download_url->get_error_codes()[0] . '<br>';
-            $errormsg .= 'Error message: ' . $download_url->get_error_message()->message . "\n";
-            wp_die($errormsg);
+        $result = $installer->install( $title, $parent_file, $submenu_file, $upgrader_args );
+        if (is_wp_error($result)) {
+            $errormsg  = 'Error: ' . $result . '<br>';
+            $errormsg .= 'Error code: ' . $result->get_error_codes()[0] . '<br>';
+            $errormsg .= 'Error message: ' . $result->get_error_message()->message . "\n";
+            wp_die($result);
         }
         $theme_dir = $gh_repo;
-
-        // get zip ball & install
-        $zip_file = $this->get_zip_ball($download_url);
-        if (is_wp_error($zip_file)) {
-            $errormsg  = 'Error: ' . $download_url . '<br>';
-            $errormsg .= 'Error code: ' . $zip_file->get_error_codes()[0] . '<br>';
-            $errormsg .= 'Error message: ' . $zip_file->get_error_message()->message . "\n";
-            wp_die($errormsg);
-        }
-        $result   = $upgrader->install($zip_file);
-
-        // remove zip file
-        $this->delete_file($zip_file);
 
         // get theme info
         $theme_slug = $theme_dir;
@@ -384,7 +275,5 @@ class Shifter_GH_Installer
             'gh_token' => $gh_token,
         ];
         update_option(self::OPTION_NAME, $this->options);
-
-        include(ABSPATH.'wp-admin/admin-footer.php');
     }
 }

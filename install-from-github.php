@@ -11,8 +11,7 @@
  * License:         GPLv2 or later
  */
 require_once(__DIR__ . '/vendor/autoload.php' );
-require_once(__DIR__ . '/inc/class-gh-auto-updater.php');
 require_once(__DIR__ . '/inc/class-gh-installer.php');
 
-$work_dir = trailingslashit(sys_get_temp_dir());
-new Shifter_GH_Installer($work_dir);
+$shifter_gh_installer = new Shifter_GH_Installer();
+$shifter_gh_installer->add_hooks();
