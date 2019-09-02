@@ -64,6 +64,19 @@ class Shifter_GH_Installer
                     }
                 }
             }
+            $slug = 'shifter-wp-git/install-from-github.php';
+            if (file_exists(WP_PLUGIN_DIR.'/'.$slug) && !isset($this->options['plugins'][$slug])) {
+                $installed[$slug] = [
+                    'gh_user'  => 'getshifter',
+                    'gh_repo'  => 'shifter-install-helper',
+                ];
+                $updater[$slug] = new GH_Auto_Updater_Plugins(
+                    $slug,
+                    $installed[$slug]['gh_user'],
+                    $installed[$slug]['gh_repo'],
+                    null
+                );
+            }
             if (count($installed) !== count($this->options['plugins'])) {
                 $this->options['plugins'] = $installed;
                 update_option(self::OPTION_NAME, $this->options);
@@ -136,6 +149,7 @@ class Shifter_GH_Installer
 	</form>
 </div>
 <?php
+        $this->notice_comment();
     }
 
     public function install_themes()
@@ -164,6 +178,12 @@ class Shifter_GH_Installer
 	</form>
 </div>
 <?php
+        $this->notice_comment();
+    }
+
+    private function notice_comment()
+    {
+        // TODO:
     }
 
     public function plugin_upload()
