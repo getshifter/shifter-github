@@ -147,8 +147,9 @@ class Shifter_GH_Installer
 		</table>
 		<?php submit_button( __( 'Install Now' ), 'primary', $submit_button_id, false ); ?>
 	</form>
+<?php $this->read_me(); ?>
+</div>
 <?php
-        $this->notice_comment();
     }
 
     public function install_themes()
@@ -175,12 +176,12 @@ class Shifter_GH_Installer
 		</table>
 		<?php submit_button( __( 'Install Now' ), 'primary', $submit_button_id, false ); ?>
 	</form>
+<?php $this->read_me(); ?>
 </div>
 <?php
-        $this->notice_comment();
     }
 
-    private function notice_comment()
+    private function read_me()
     {
 ?>
 	<div class="how-to-update">
@@ -246,8 +247,6 @@ class Shifter_GH_Installer
 			  <pre><code>$ travis setup releases</code></pre>
 			  <p>Please check <code>.travis.yml</code> and <a href="https://docs.travis-ci.com/user/deployment/releases/" rel="nofollow">documentation</a>.</p>
 	</div>
-
-</div>
 <?php
     }
 
