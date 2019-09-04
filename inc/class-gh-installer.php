@@ -228,8 +228,16 @@ class Shifter_GH_Installer
 					</ul>
 				</li>
 				<li>After changed some lines, commit and push it to your GitHub repository.</li>
-			</ol>
+			  </ol>
 			  <p>Now when you push your tag to GitHub, the release package will be created automatically.</p>
+			  <h4>Example Projects</h4>
+			  <p>Please install old version of following projects, then you can see update notice.</p>
+			  <ul>
+				<li><a href="https://github.com/getshifter/shifter-github-hosting-plugin-sample">https://github.com/getshifter/shifter-github-hosting-plugin-sample</a></li>
+				<li><a href="https://github.com/getshifter/shifter-github-hosting-theme-sample">https://github.com/getshifter/shifter-github-hosting-theme-sample</a></li>
+			  </ul>
+			  <p>These projects deploy new releases automatically with GitHub Actions.</p>
+			  <p>Please check <a href="https://github.com/getshifter/shifter-github-hosting-plugin-sample/blob/master/.github/workflows/release.yml" rel="nofollow">.github/workflows/release.yml</a>.</p>
 			  
 			  <h3>C. Automated release the new version with Travis.</h3>
 			  <p>Also, you can use <a href="https://docs.travis-ci.com/user/deployment/releases/" rel="nofollow">automatic release</a> with Travis.</p>
@@ -237,15 +245,6 @@ class Shifter_GH_Installer
 			  <p><a href="https://github.com/miya0001/miya-gallery/blob/master/.travis.yml">https://github.com/miya0001/miya-gallery/blob/master/.travis.yml</a></p>
 			  <p>You can generate <code>deploy:</code> section by <a href="https://github.com/travis-ci/travis.rb">The Travis Client</a> like following.</p>
 			  <pre><code>$ travis setup releases</code></pre>
-			  <h4>Example Projects</h4>
-			  <p>Please install old version of following projects, then you can see update notice.</p>
-			  <ul>
-				<li><a href="https://github.com/miya0001/self-hosted-wordpress-plugin-on-github">https://github.com/miya0001/self-hosted-wordpress-plugin-on-github</a></li>
-				<li><a href="https://github.com/miya0001/miya-gallery">https://github.com/miya0001/miya-gallery</a></li>
-			  </ul>
-			  <p>These projects deploy new releases automatically with Travis CI.</p>
-			  <pre><code>$ travis setup releases</code></pre>
-			  <p>Please check <code>.travis.yml</code> and <a href="https://docs.travis-ci.com/user/deployment/releases/" rel="nofollow">documentation</a>.</p>
 	</div>
 <?php
     }
