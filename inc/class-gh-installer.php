@@ -206,6 +206,71 @@ class Shifter_GH_Installer
 		</table>
 		<?php submit_button( __( 'Install Now' ), 'primary', $submit_button_id, false ); ?>
 	</form>
+
+	<div class="how-to-update">
+			  <h2>How to update your plugin.</h2>
+			  <p>To release the new version, please do as follows:</p>
+			  <h3>Tag and push to GitHub, then upload the package by one of the ways as follows.</h3>
+			  <pre><code>$ git tag 1.1.0
+ $ git push origin 1.1.0
+</code>
+			  </pre>
+			  <ul>
+				<li><code>1.1.0</code> is a version number, it has to be same with version number in your WordPress plugin.</li>
+				<li>You have to commit <code>vendor</code> directory in your plugin.</li>
+			  </ul>
+			  <h3>A. Manually release the new version.</h3>
+			  <ol>
+				<li>Please visit "releases" in your GitHub repository.</li>
+				<li>Choose a tag.</li>
+				<li>Fill out the release note and title.</li>
+				<li>Upload your plugin which is comporessed with zip. (Optional)</li>
+				<li>Press "Publish release".</li>
+			  </ol>
+			  <h3>B. Automated release the new version with GitHub Actions.</h3>
+			  
+			  <p>You can upload the package automat GutHub Actions.</p>
+			  
+			  <p>As for now, GitHub Actions service is in beta, so you have to <a href="https://github.com/features/actions">sign up the Beta here</a>
+			  </p>
+			  <p>When the service is ready you will find the Actions tab on the top page of your repository, then follow the steps below:</p>
+			  <ol>
+				<li>Then, copy the .github directory on the below url to the root directory of your local repository.<br><a href="https://github.com/getshifter/shifter-github-hosting-plugin-sample">https://github.com/getshifter/shifter-github-hosting-plugin-sample</a></li>
+				<li>It must be look like:
+/path_to_your_repository/.github/workflows/release.yml</li>
+				<li>Open the release.yml file with your favorite editor and change some lines:
+					<ul>
+						<li>You MUST change the PACKAGE_NAME to your package name.</li>
+						<li>Also, if you need:
+						  <ul>
+							<li>change FILES_TO_ARCIVE</li>
+							<li>comment out the composer install section</li>
+							<li>uncomment npm install section</li>
+						  </ul>
+						</li>
+					</ul>
+				</li>
+				<li>After changed some lines, commit and push it to your GitHub repository.</li>
+			</ol>
+			  <p>Now when you push your tag to GitHub, the release package will be created automatically.</p>
+			  
+			  <h3>C. Automated release the new version with Travis.</h3>
+			  <p>Also, you can use <a href="https://docs.travis-ci.com/user/deployment/releases/" rel="nofollow">automatic release</a> with Travis.</p>
+			  <p>Following is an example of the <code>.travis.yml</code> for automatic release.</p>
+			  <p><a href="https://github.com/miya0001/miya-gallery/blob/master/.travis.yml">https://github.com/miya0001/miya-gallery/blob/master/.travis.yml</a></p>
+			  <p>You can generate <code>deploy:</code> section by <a href="https://github.com/travis-ci/travis.rb">The Travis Client</a> like following.</p>
+			  <pre><code>$ travis setup releases</code></pre>
+			  <h4>Example Projects</h4>
+			  <p>Please install old version of following projects, then you can see update notice.</p>
+			  <ul>
+				<li><a href="https://github.com/miya0001/self-hosted-wordpress-plugin-on-github">https://github.com/miya0001/self-hosted-wordpress-plugin-on-github</a></li>
+				<li><a href="https://github.com/miya0001/miya-gallery">https://github.com/miya0001/miya-gallery</a></li>
+			  </ul>
+			  <p>These projects deploy new releases automatically with Travis CI.</p>
+			  <pre><code>$ travis setup releases</code></pre>
+			  <p>Please check <code>.travis.yml</code> and <a href="https://docs.travis-ci.com/user/deployment/releases/" rel="nofollow">documentation</a>.</p>
+	</div>
+
 </div>
 <?php
     }
