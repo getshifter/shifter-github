@@ -147,7 +147,42 @@ class Shifter_GH_Installer
 		</table>
 		<?php submit_button( __( 'Install Now' ), 'primary', $submit_button_id, false ); ?>
 	</form>
+<?php
+        $this->notice_comment();
+    }
 
+    public function install_themes()
+    {
+        $form_action = self_admin_url('update.php?action=gh-upload-theme');;
+        $submit_button_id = 'install-theme-gh-submit';
+        ?>
+<div class="wrap">
+	<h2><?php _e( 'Shifter Github Theme Installer' ); ?></h2>
+	<p class="install-help"><?php _e( 'If you have a theme from GitHub, you may input GitHub repo URL.' ); ?></p>
+	<form method="post" class="shifter-upload-form" action="<?php echo $form_action; ?>">
+		<?php wp_nonce_field( 'theme-upload' ); ?>
+		<table class="form-table">
+		<tbody>
+			<tr>
+				<th scope="row"><label for="ghrepo"><?php _e( 'GitHub repo URL' ); ?></label></th>
+				<td><input type="text" id="ghrepo" name="ghrepo" class="regular-text" /></td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="ghtoken"><?php _e( 'GitHub token (option)' ); ?></label></th>
+				<td><input type="text" id="ghtoken" name="ghtoken" class="regular-text" /></td>
+			</tr>
+		</tbody>
+		</table>
+		<?php submit_button( __( 'Install Now' ), 'primary', $submit_button_id, false ); ?>
+	</form>
+</div>
+<?php
+        $this->notice_comment();
+    }
+
+    private function notice_comment()
+    {
+?>
 	<div class="how-to-update">
 			  <h2>How to update your plugin.</h2>
 			  <p>To release the new version, please do as follows:</p>
@@ -214,41 +249,6 @@ class Shifter_GH_Installer
 
 </div>
 <?php
-        $this->notice_comment();
-    }
-
-    public function install_themes()
-    {
-        $form_action = self_admin_url('update.php?action=gh-upload-theme');;
-        $submit_button_id = 'install-theme-gh-submit';
-        ?>
-<div class="wrap">
-	<h2><?php _e( 'Shifter Github Theme Installer' ); ?></h2>
-	<p class="install-help"><?php _e( 'If you have a theme from GitHub, you may input GitHub repo URL.' ); ?></p>
-	<form method="post" class="shifter-upload-form" action="<?php echo $form_action; ?>">
-		<?php wp_nonce_field( 'theme-upload' ); ?>
-		<table class="form-table">
-		<tbody>
-			<tr>
-				<th scope="row"><label for="ghrepo"><?php _e( 'GitHub repo URL' ); ?></label></th>
-				<td><input type="text" id="ghrepo" name="ghrepo" class="regular-text" /></td>
-			</tr>
-			<tr>
-				<th scope="row"><label for="ghtoken"><?php _e( 'GitHub token (option)' ); ?></label></th>
-				<td><input type="text" id="ghtoken" name="ghtoken" class="regular-text" /></td>
-			</tr>
-		</tbody>
-		</table>
-		<?php submit_button( __( 'Install Now' ), 'primary', $submit_button_id, false ); ?>
-	</form>
-</div>
-<?php
-        $this->notice_comment();
-    }
-
-    private function notice_comment()
-    {
-        // TODO:
     }
 
     public function plugin_upload()
