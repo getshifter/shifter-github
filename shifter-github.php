@@ -1,11 +1,11 @@
 <?php
 /**
  * Plugin Name:     Shifter Github Plugin/Theme Installer
- * Plugin URI:      https://github.com/getshifter/shifter-install-helper
+ * Plugin URI:      https://github.com/getshifter/shifter-github
  * Description:     Shifter Github Plugin/Theme Installer
  * Author:          Shifter Team
  * Author URI:      https://getshifter.io
- * Text Domain:     shifter-github-pull
+ * Text Domain:     shifter-github
  * Domain Path:     /languages
  * Version:         {release version}
  * License:         GPLv2 or later

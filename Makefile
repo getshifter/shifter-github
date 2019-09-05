@@ -6,9 +6,9 @@ composer:
 	@echo
 
 archive:
-	rm -f shifter-wp-git.zip
-	zip -r shifter-wp-git.zip install-from-github.php inc/* vendor/*
+	rm -f shifter-github.zip
+	zip -r shifter-github.zip *.php *.md inc/* vendor/*
 
 clean:
-	rm -f shifter-wp-git.zip
+	rm -f shifter-github.zip
 	rm -rf vendor/

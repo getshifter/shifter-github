@@ -183,70 +183,16 @@ class Shifter_GH_Installer
 
     private function read_me()
     {
-?>
-	<div class="how-to-update">
-			  <h2>How to update your plugin.</h2>
-			  <p>To release the new version, please do as follows:</p>
-			  <h3>Tag and push to GitHub, then upload the package by one of the ways as follows.</h3>
-			  <pre><code>$ git tag 1.1.0
- $ git push origin 1.1.0
-</code>
-			  </pre>
-			  <ul>
-				<li><code>1.1.0</code> is a version number, it has to be same with version number in your WordPress plugin.</li>
-				<li>You have to commit <code>vendor</code> directory in your plugin.</li>
-			  </ul>
-			  <h3>A. Manually release the new version.</h3>
-			  <ol>
-				<li>Please visit "releases" in your GitHub repository.</li>
-				<li>Choose a tag.</li>
-				<li>Fill out the release note and title.</li>
-				<li>Upload your plugin which is comporessed with zip. (Optional)</li>
-				<li>Press "Publish release".</li>
-			  </ol>
-			  <h3>B. Automated release the new version with GitHub Actions.</h3>
-			  
-			  <p>You can upload the package automat GutHub Actions.</p>
-			  
-			  <p>As for now, GitHub Actions service is in beta, so you have to <a href="https://github.com/features/actions">sign up the Beta here</a>
-			  </p>
-			  <p>When the service is ready you will find the Actions tab on the top page of your repository, then follow the steps below:</p>
-			  <ol>
-				<li>Then, copy the .github directory on the below url to the root directory of your local repository.<br><a href="https://github.com/getshifter/shifter-github-hosting-plugin-sample">https://github.com/getshifter/shifter-github-hosting-plugin-sample</a></li>
-				<li>It must be look like:
-/path_to_your_repository/.github/workflows/release.yml</li>
-				<li>Open the release.yml file with your favorite editor and change some lines:
-					<ul>
-						<li>You MUST change the PACKAGE_NAME to your package name.</li>
-						<li>Also, if you need:
-						  <ul>
-							<li>change FILES_TO_ARCIVE</li>
-							<li>comment out the composer install section</li>
-							<li>uncomment npm install section</li>
-						  </ul>
-						</li>
-					</ul>
-				</li>
-				<li>After changed some lines, commit and push it to your GitHub repository.</li>
-			  </ol>
-			  <p>Now when you push your tag to GitHub, the release package will be created automatically.</p>
-			  <h4>Example Projects</h4>
-			  <p>Please install old version of following projects, then you can see update notice.</p>
-			  <ul>
-				<li><a href="https://github.com/getshifter/shifter-github-hosting-plugin-sample">https://github.com/getshifter/shifter-github-hosting-plugin-sample</a></li>
-				<li><a href="https://github.com/getshifter/shifter-github-hosting-theme-sample">https://github.com/getshifter/shifter-github-hosting-theme-sample</a></li>
-			  </ul>
-			  <p>These projects deploy new releases automatically with GitHub Actions.</p>
-			  <p>Please check <a href="https://github.com/getshifter/shifter-github-hosting-plugin-sample/blob/master/.github/workflows/release.yml" rel="nofollow">.github/workflows/release.yml</a>.</p>
-			  
-			  <h3>C. Automated release the new version with Travis.</h3>
-			  <p>Also, you can use <a href="https://docs.travis-ci.com/user/deployment/releases/" rel="nofollow">automatic release</a> with Travis.</p>
-			  <p>Following is an example of the <code>.travis.yml</code> for automatic release.</p>
-			  <p><a href="https://github.com/miya0001/miya-gallery/blob/master/.travis.yml">https://github.com/miya0001/miya-gallery/blob/master/.travis.yml</a></p>
-			  <p>You can generate <code>deploy:</code> section by <a href="https://github.com/travis-ci/travis.rb">The Travis Client</a> like following.</p>
-			  <pre><code>$ travis setup releases</code></pre>
-	</div>
-<?php
+        $parsedown = new \Parsedown();
+        $readme_file = dirname(__DIR__) . '/README.md';
+        $readme = '';
+        if ( is_file( $readme_file ) ) {
+            $readme = $parsedown->text( file_get_contents( $readme_file ) );
+        }
+        
+        echo '<div class="how-to-update">'."\n";
+        echo $readme;
+        echo '</div>'."\n";
     }
 
     public function plugin_upload()
