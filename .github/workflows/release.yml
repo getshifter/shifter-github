@@ -16,7 +16,7 @@ jobs:
       run: |
         export CREATE_EVENT_REF_TYPE=$(jq --raw-output .ref_type "$GITHUB_EVENT_PATH")
         export TAGNAME=$(jq --raw-output .ref "$GITHUB_EVENT_PATH")
-        sed -i -e "s/{release version}/${TAGNAME}/g" install-from-github.php
+        sed -i -e "s/{release version}/${TAGNAME}/g" shifter-github.php
     - name: create archive
       run: make archive
     - name: upload

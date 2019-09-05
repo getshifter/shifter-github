@@ -7,7 +7,7 @@ composer:
 
 archive:
 	rm -f shifter-github.zip
-	zip -r shifter-github.zip *.php *.md inc/* vendor/*
+	zip -r shifter-github.zip *.php *.md LICENSE inc/* vendor/*
 
 clean:
 	rm -f shifter-github.zip
