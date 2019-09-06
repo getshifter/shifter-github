@@ -53,7 +53,7 @@ Please check [.github/workflows/release.yml](https://github.com/getshifter/shift
 
 ### C. Automated release the new version with Travis.
 
-Also, you can use [utomatic release](https://docs.travis-ci.com/user/deployment/releases/) with Travis.
+Also, you can use [Automatic release](https://docs.travis-ci.com/user/deployment/releases/) with Travis.
 
 Following is an example of the `.travis.yml` for automatic release.
 
