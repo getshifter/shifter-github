@@ -75,7 +75,11 @@ class GH_Auto_Updater_Base
             break;
 
         case 'remote_version':
-            $value = $this->get_api_data( '/releases/latest' );
+            if (empty($this->gh_token)) {
+                $value = $this->get_release_from_api_v3();
+            } else {
+                $value = $this->get_release_from_api_v4();
+            }
             break;
 
         case 'github_repo_url' :
@@ -288,7 +292,14 @@ class GH_Auto_Updater_Base
             );
         }
 
-        return esc_url( $download_url );
+        return $download_url;
+    }
+
+    private function get_download_filename()
+    {
+        $download_filename = $this->gh_repo . '.zip';
+
+        return $download_filename;
     }
 
     /**
@@ -298,38 +309,107 @@ class GH_Auto_Updater_Base
      *
      * @return object The object that is gotten from the API.
      */
-    private function get_api_data( $endpoint = null )
-    {
-        $body = $this->remote_get( $this->get_gh_api( $endpoint ) );
-        return 
-            ! is_wp_error( $body )
-            ? json_decode( $body )
-            : $body;
-    }
-
-    /**
-     * Returns the data from the GitHub API.
-     *
-     * @param string $endpoint The path to the endpoint of the GitHub API.
-     *
-     * @return object The URL of the GitHub API.
-     */
-    private function get_gh_api( $endpoint = null )
+    private function get_release_from_api_v3()
     {
         $url = sprintf(
             'https://api.github.com/repos/%1$s/%2$s%3$s',
             $this->gh_user,
             $this->gh_repo,
-            $endpoint
+            '/releases/latest'
         );
+        $url = esc_url_raw( $url, 'https' );
+        $body = $this->remote_get( $url );
+        if ( is_wp_error( $body ) ) {
+            return $body;
+        } else {
+            $obj = json_decode( $body );
+            if ( !empty($obj->assets[0]->browser_download_url) ) {
+                $obj->assets[0]->download_file_name = basename( preg_replace( '/\?.*$/', '', $obj->assets[0]->browser_download_url ) );
+            }
+            return $obj;
+        }
+    }
 
-        if ( $this->gh_token ) {
-            $url = add_query_arg( array(
-                'access_token' => $this->gh_token
-            ), $url );
+    private function get_release_from_api_v4( $cache = false )
+    {
+        $transient_key = "GH_Auto_Updater::githubapiv4/{$this->gh_user}/{$this->gh_repo}/release";
+        if ( ! $cache || false === ( $res = get_transient( $transient_key ) ) ) {
+            $query = '
+            {
+                repository(owner: "'.$this->gh_user.'", name: "'.$this->gh_repo.'") {
+                  releases(last: 1){
+                    edges {
+                      node {
+                        releaseAssets(last: 1) {
+                          nodes {
+                            url
+                            downloadUrl
+                            createdAt
+                            updatedAt
+                          }
+                        }
+                        url
+                        resourcePath
+                        tagName
+                        isPrerelease
+                        publishedAt
+                        updatedAt
+                        descriptionHTML
+                      }
+                    }
+                  }
+                }
+              }
+            ';
+            $options = [
+                'method'  => 'POST',
+                'headers' => [
+                    'Authorization' => 'bearer ' . $this->gh_token,
+                    'Content-type'  => 'application/json; charset=UTF-8',
+                ],
+                'body'    => json_encode(['query' => $query]),
+            ];
+            $url = esc_url_raw( 'https://api.github.com/graphql', 'https' );
+            $res = wp_remote_post( $url, $options);
+            if ( $cache ) {
+                set_transient( $transient_key, $res, 5 * MINUTE_IN_SECONDS );
+            }
         }
 
-        return esc_url_raw( $url, 'https' );
+        if (200 !== wp_remote_retrieve_response_code( $res )) {
+            return new \WP_Error(
+                wp_remote_retrieve_response_code( $res ),
+                wp_remote_retrieve_body( $res )
+            );
+        }
+        $body = json_decode( wp_remote_retrieve_body( $res ) );
+
+        $obj = new \stdClass();
+        if ( ! empty($body->data->repository->releases->edges[0]->node->releaseAssets) ) {
+            $gh_repo_url = "https://github.com/{$this->gh_user}/${$this->gh_repo}";
+
+            $asset = new \stdClass();
+            $release_asset = $body->data->repository->releases->edges[0]->node;
+            $asset->browser_download_url = $release_asset->releaseAssets->nodes[0]->url;
+            $asset->download_file_name = basename( preg_replace( '/\?.*$/', '', $release_asset->releaseAssets->nodes[0]->downloadUrl) );
+            $asset->html_url = $gh_repo_url;
+            $asset->tag_name = $release_asset->tagName;
+            $asset->published_at = $release_asset->publishedAt;
+            $asset->updated_at = $release_asset->updatedAt;
+            $obj->assets = [$asset];
+
+            $obj->author = new \stdClass();
+            $obj->author->url = $gh_repo_url;
+            $obj->author->login = $this->gh_user;
+            $obj->html_url = $gh_repo_url;
+            $obj->tag_name = $release_asset->tagName;
+            $obj->published_at = $release_asset->publishedAt;
+            $obj->updated_at = $release_asset->updatedAt;
+            $obj->is_prerelease = $release_asset->isPrerelease;
+            $obj->body = $release_asset->descriptionHTML;
+        }
+
+        return $obj;
     }
 
     private function remote_get( $url, $cache = true )
@@ -374,7 +454,7 @@ class GH_Auto_Updater_Base
             $wp_filesystem->mkdir( $work_dir );
         }
 
-        $zip_file = trailingslashit( $work_dir ) . basename( preg_replace( '/\?.*$/', '', $download_url ) );
+        $zip_file = trailingslashit( $work_dir ) . $this->get_download_filename();
         $body = $this->remote_get( $download_url, false );
         if ( is_wp_error( $body ) ) {
             return $body;

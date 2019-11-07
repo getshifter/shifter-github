@@ -122,15 +122,17 @@ class GH_Auto_Updater_Themes extends GH_Auto_Updater_Base
         if ( is_wp_error( $this->remote_version ) || is_wp_error( $this->current_version ) ) {
             return $default;
         }
+        $current_version = $this->current_version;
+        $remote_version  = $this->remote_version;
 
         $obj = new \stdClass();
         $obj->slug = $this->slug;
-        $obj->name = esc_html( $this->current_version->name );
-        $obj->theme_name = esc_html( $this->current_version->name );
+        $obj->name = esc_html( $current_version->name );
+        $obj->theme_name = esc_html( $current_version->name );
         $obj->author = sprintf(
             '<a href="%1$s" target="_blank">%2$s</a>',
-            esc_url( $this->remote_version->author->html_url ),
-            esc_html( $this->remote_version->author->login )
+            esc_url( $remote_version->author->html_url ),
+            esc_html( $remote_version->author->login )
         );
         $obj->homepage = esc_url( $this->github_repo_url );
         $obj->version = sprintf(
@@ -138,10 +140,10 @@ class GH_Auto_Updater_Themes extends GH_Auto_Updater_Base
             $remote_version->html_url,
             $remote_version->tag_name
         );
-        $obj->last_updated = $this->remote_version->published_at;
+        $obj->last_updated = $remote_version->published_at;
 
         $parsedown = new \Parsedown();
-        $changelog = $parsedown->text( $this->remote_version->body );
+        $changelog = $parsedown->text( $remote_version->body );
         $readme_file = get_theme_root() . '/' . dirname( $this->slug ) . '/README.md';
         $readme = '';
         if ( is_file( $readme_file ) ) {
@@ -169,12 +171,14 @@ class GH_Auto_Updater_Themes extends GH_Auto_Updater_Base
         if ( is_wp_error( $this->remote_version ) || is_wp_error( $this->current_version ) ) {
             return $transient;
         }
+        $current_version = $this->current_version;
+        $remote_version  = $this->remote_version;
 
-        if ( version_compare( $this->current_version->version, $this->remote_version->tag_name, '<' ) ) {
+        if ( version_compare( $current_version->version, $remote_version->tag_name, '<' ) ) {
             $array = [];
             $array['slug'] = $this->slug;
             $array['theme'] = $this->slug;
-            $array['new_version'] = $this->remote_version->tag_name;
+            $array['new_version'] = $remote_version->tag_name;
             $array['url'] = $remote_version->html_url;
             $array['package'] = $this->download_url;
             $transient->response[ $this->slug ] = $array;
