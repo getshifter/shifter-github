@@ -22,7 +22,7 @@ $ git push origin 1.1.0
 
 ### B. Automated release the new version with GitHub Actions.
 
-You can upload the package automat GutHub Actions.
+You can upload the package automat GitHub Actions.
 
 As for now, GitHub Actions service is in beta, so you have to [sign up the Beta here](https://github.com/features/actions)
 
