@@ -14,9 +14,9 @@ jobs:
     - name: composer install
       run: make composer
     - name: add version
+      env:
+        TAGNAME: ${{ github.ref }}
       run: |
-        export CREATE_EVENT_REF_TYPE=$(jq --raw-output .ref_type "$GITHUB_EVENT_PATH")
-        export TAGNAME=$(jq --raw-output .ref "$GITHUB_EVENT_PATH")
         sed -i -e "s/{release version}/${TAGNAME}/g" shifter-github.php
     - name: create archive
       run: make archive
@@ -24,9 +24,8 @@ jobs:
       env:
         PACKAGE_NAME: "shifter-github"
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TAGNAME: ${{ github.ref }}
         GOPATH: /home/runner/go
       run: |
-        export CREATE_EVENT_REF_TYPE=$(jq --raw-output .ref_type "$GITHUB_EVENT_PATH")
-        export TAGNAME=$(jq --raw-output .ref "$GITHUB_EVENT_PATH")
         go get -u github.com/tcnksm/ghr
         ${GOPATH}/bin/ghr -b "${PACKAGE_NAME} ${TAGNAME}" -replace ${TAGNAME} ${PACKAGE_NAME}.zip
