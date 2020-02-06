@@ -81,7 +81,7 @@ class Shifter_GH_Installer
                             $github_info['gh_repo'],
                             isset($github_info['gh_token']) ? $github_info['gh_token'] : null
                         );
-                        $installed[$slug] = $info;
+                        $installed[$slug] = $github_info;
                         break;
                     }
                 }
@@ -176,7 +176,7 @@ class Shifter_GH_Installer
         if ( is_file( $readme_file ) ) {
             $readme = $parsedown->text( file_get_contents( $readme_file ) );
         }
-        
+
         echo '<div class="how-to-update">'."\n";
         echo $readme;
         echo '</div>'."\n";
