@@ -17,7 +17,7 @@ jobs:
       env:
         TAGNAME: ${{ github.ref }}
       run: |
-        sed -i -e "s/{release version}/${TAGNAME}/g" shifter-github.php
+        sed -i -e "s/{release version}/${TAGNAME#refs/tags/}/g" shifter-github.php
     - name: create archive
       run: make archive
     - name: upload
@@ -28,4 +28,4 @@ jobs:
         GOPATH: /home/runner/go
       run: |
         go get -u github.com/tcnksm/ghr
-        ${GOPATH}/bin/ghr -b "${PACKAGE_NAME} ${TAGNAME}" -replace ${TAGNAME} ${PACKAGE_NAME}.zip
+        ${GOPATH}/bin/ghr -b "${PACKAGE_NAME} ${TAGNAME#refs/tags/}" -replace ${TAGNAME#refs/tags/} ${PACKAGE_NAME}.zip
