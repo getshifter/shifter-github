@@ -135,11 +135,7 @@ class GH_Auto_Updater_Themes extends GH_Auto_Updater_Base
             esc_html( $remote_version->author->login )
         );
         $obj->homepage = esc_url( $this->github_repo_url );
-        $obj->version = sprintf(
-            '<a href="%1$s" target="_blank">%2$s</a>',
-            $remote_version->html_url,
-            $remote_version->tag_name
-        );
+        $obj->version = $remote_version->tag_name;
         $obj->last_updated = $remote_version->published_at;
 
         $parsedown = new \Parsedown();
