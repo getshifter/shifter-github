@@ -386,7 +386,7 @@ class GH_Auto_Updater_Base
 
         $obj = new \stdClass();
         if ( ! empty($body->data->repository->releases->edges[0]->node->releaseAssets) ) {
-            $gh_repo_url = "https://github.com/{$this->gh_user}/${$this->gh_repo}";
+            $gh_repo_url = "https://github.com/{$this->gh_user}/{$this->gh_repo}";
 
             $asset = new \stdClass();
             $release_asset = $body->data->repository->releases->edges[0]->node;
