@@ -217,7 +217,7 @@ class Shifter_GH_Installer
         );
         $result = $installer->install( $title, $parent_file, $submenu_file, $upgrader_args );
         if (is_wp_error($result)) {
-            $errormsg  = 'Error: ' . $result . '<br>';
+            $errormsg  = 'Error: ' . var_export( $result, true ) . '<br>';
             $errormsg .= 'Error code: ' . $result->get_error_codes()[0] . '<br>';
             $errormsg .= 'Error message: ' . $result->get_error_message()->message . "\n";
             wp_die($result);
@@ -276,7 +276,7 @@ class Shifter_GH_Installer
         );
         $result = $installer->install( $title, $parent_file, $submenu_file, $upgrader_args );
         if (is_wp_error($result)) {
-            $errormsg  = 'Error: ' . $result . '<br>';
+            $errormsg  = 'Error: ' . var_export( $result, true ) . '<br>';
             $errormsg .= 'Error code: ' . $result->get_error_codes()[0] . '<br>';
             $errormsg .= 'Error message: ' . $result->get_error_message()->message . "\n";
             wp_die($result);
