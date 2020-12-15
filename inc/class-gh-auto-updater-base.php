@@ -35,6 +35,8 @@ class GH_Auto_Updater_Base
      */
     private $slug;
 
+    const TRANSIENT_EXPIRES_MIN = 3;
+
     /**
      * Activate automatic update with GitHub API.
      *
@@ -125,7 +127,49 @@ class GH_Auto_Updater_Base
 
     protected function add_filters()
     {
+        add_filter( 'upgrader_package_options', [$this, 'filter_upgrader_package_options'] );
         add_filter( 'upgrader_source_selection', [$this, 'filter_upgrader_source_selection'], 1 );
+    }
+
+    /**
+     * Filters the package options before running an update.
+     *
+     * See also {@see 'upgrader_process_complete'}.
+     *
+     * @since 4.3.0
+     *
+     * @param array $options {
+     *     Options used by the upgrader.
+     *
+     *     @type string $package                     Package for update.
+     *     @type string $destination                 Update location.
+     *     @type bool   $clear_destination           Clear the destination resource.
+     *     @type bool   $clear_working               Clear the working resource.
+     *     @type bool   $abort_if_destination_exists Abort if the Destination directory exists.
+     *     @type bool   $is_multi                    Whether the upgrader is running multiple times.
+     *     @type array  $hook_extra {
+     *         Extra hook arguments.
+     *
+     *         @type string $action               Type of action. Default 'update'.
+     *         @type string $type                 Type of update process. Accepts 'plugin', 'theme', or 'core'.
+     *         @type bool   $bulk                 Whether the update process is a bulk update. Default true.
+     *         @type string $plugin               Path to the plugin file relative to the plugins directory.
+     *         @type string $theme                The stylesheet or template name of the theme.
+     *         @type string $language_update_type The language pack update type. Accepts 'plugin', 'theme',
+     *                                            or 'core'.
+     *         @type object $language_update      The language pack update offer.
+     *     }
+     * }
+     */
+    public function filter_upgrader_package_options( $options )
+    {
+        if ( isset( $options['package'] ) && preg_match( '#^https://github#i', $options['package'] ) ) {
+            $zip_file = $this->get_zip_ball( $options['package'] );
+            if ( ! is_wp_error( $zip_file ) ) {
+                $options['package'] = $zip_file;
+            }
+        }
+        return $options;
     }
 
     /**
@@ -372,7 +416,7 @@ class GH_Auto_Updater_Base
             $url = esc_url_raw( 'https://api.github.com/graphql', 'https' );
             $res = wp_remote_post( $url, $options);
             if ( $cache ) {
-                set_transient( $transient_key, $res, 5 * MINUTE_IN_SECONDS );
+                set_transient( $transient_key, $res, self::TRANSIENT_EXPIRES_MIN * MINUTE_IN_SECONDS );
             }
         }
 
@@ -391,7 +435,7 @@ class GH_Auto_Updater_Base
             $asset = new \stdClass();
             $release_asset = $body->data->repository->releases->edges[0]->node;
             $asset->browser_download_url = $release_asset->releaseAssets->nodes[0]->url;
-            $asset->download_file_name = basename( preg_replace( '/\?.*$/', '', $release_asset->releaseAssets->nodes[0]->downloadUrl) );
+            $asset->download_file_name = $this->get_download_filename();
             $asset->html_url = $gh_repo_url;
             $asset->tag_name = $release_asset->tagName;
             $asset->published_at = $release_asset->publishedAt;
@@ -418,7 +462,7 @@ class GH_Auto_Updater_Base
         if ( ! $cache || false === ( $res = get_transient( $transient_key ) ) ) {
             $res = wp_remote_get( $url );
             if ( $cache ) {
-                set_transient( $transient_key, $res, 5 * MINUTE_IN_SECONDS );
+                set_transient( $transient_key, $res, self::TRANSIENT_EXPIRES_MIN * MINUTE_IN_SECONDS );
             }
         }
 
