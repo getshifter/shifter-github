@@ -31,7 +31,7 @@ class GH_Auto_Updater_Themes extends GH_Auto_Updater_Base
         }
         return $value;
     }
-    
+
     public function add_filters()
     {
         parent::add_filters();

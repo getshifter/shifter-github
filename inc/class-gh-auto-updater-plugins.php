@@ -38,11 +38,6 @@ class GH_Auto_Updater_Plugins extends GH_Auto_Updater_Base
         add_filter( 'pre_set_site_transient_update_plugins', [$this, 'filter_pre_set_site_transient_update'] );
         add_filter( 'site_transient_update_plugins', [$this, 'filter_site_transient_update'] );
         add_filter( 'plugins_api', [$this, 'filter_api'], 10, 3 );
-
-//        //  Echo the style for plugin's detail popup screen.
-//        add_action( 'admin_head', function(){
-//            echo '<style>#plugin-information .section img{ max-width: 100%; height: auto; }</style>';
-//        } );
     }
 
     /**
