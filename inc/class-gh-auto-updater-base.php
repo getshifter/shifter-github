@@ -164,9 +164,13 @@ class GH_Auto_Updater_Base
     public function filter_upgrader_package_options( $options )
     {
         if ( isset( $options['package'] ) && preg_match( '#^https://github#i', $options['package'] ) ) {
-            $zip_file = $this->get_zip_ball( $options['package'] );
-            if ( ! is_wp_error( $zip_file ) ) {
-                $options['package'] = $zip_file;
+            $org = preg_replace('#^([^\?]+)\?.*$#', '$1', basename($this->download_url));
+            $pkg = preg_replace('#^([^\?]+)\?.*$#', '$1', basename($options['package']));
+            if ( $org === $pkg ) {
+                $zip_file = $this->get_zip_ball( $options['package'] );
+                if ( ! is_wp_error( $zip_file ) ) {
+                    $options['package'] = $zip_file;
+                }
             }
         }
         return $options;
@@ -339,7 +343,7 @@ class GH_Auto_Updater_Base
         return $download_url;
     }
 
-    private function get_download_filename()
+    public function get_download_filename()
     {
         $download_filename = $this->gh_repo . '.zip';
 
@@ -456,7 +460,7 @@ class GH_Auto_Updater_Base
         return $obj;
     }
 
-    private function remote_get( $url, $cache = true )
+    public static function remote_get( $url, $cache = true )
     {
         $transient_key = 'GH_Auto_Updater::'.$url;
         if ( ! $cache || false === ( $res = get_transient( $transient_key ) ) ) {
@@ -476,7 +480,7 @@ class GH_Auto_Updater_Base
         return $body;
     }
 
-    private function filesystem()
+    public static function filesystem()
     {
         global $wp_filesystem;
         if ( empty( $wp_filesystem ) ) {
@@ -489,7 +493,7 @@ class GH_Auto_Updater_Base
     // get zip ball
     private function get_zip_ball( $download_url, $work_dir = null )
     {
-        $wp_filesystem = $this->filesystem();
+        $wp_filesystem = self::filesystem();
 
         if ( ! $work_dir ) {
             $work_dir = sys_get_temp_dir();
@@ -499,7 +503,7 @@ class GH_Auto_Updater_Base
         }
 
         $zip_file = trailingslashit( $work_dir ) . $this->get_download_filename();
-        $body = $this->remote_get( $download_url, false );
+        $body = self::remote_get( $download_url, false );
         if ( is_wp_error( $body ) ) {
             return $body;
         }
@@ -510,7 +514,7 @@ class GH_Auto_Updater_Base
 
     private function delete_file( $filename )
     {
-        $wp_filesystem = $this->filesystem();
+        $wp_filesystem = self::filesystem();
         $wp_filesystem->delete( $filename );
         $dirname = dirname( $filename );
         if ( empty( glob( $dirname.'/*' ) ) ){
