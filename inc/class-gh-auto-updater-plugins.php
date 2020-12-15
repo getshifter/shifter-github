@@ -90,14 +90,6 @@ class GH_Auto_Updater_Plugins extends GH_Auto_Updater_Base
      */
     public function filter_site_transient_update( $value )
     {
-        if ( ! empty( $value->response[ $this->slug ] ) ) {
-            $plugin = $value->response[ $this->slug ];
-            if ( ! empty( $plugin->package ) ) {
-                if ( 0 !== strpos( $plugin->package, 'https://github.com' ) ) {
-                    unset( $value->response[ $this->slug ] );
-                }
-            }
-        }
         return $value;
     }
 
