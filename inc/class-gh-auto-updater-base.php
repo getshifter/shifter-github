@@ -385,10 +385,10 @@ class GH_Auto_Updater_Base
             $query = '
             {
                 repository(owner: "'.$this->gh_user.'", name: "'.$this->gh_repo.'") {
-                  releases(last: 1){
+                  releases(first: 1){
                     edges {
                       node {
-                        releaseAssets(last: 1) {
+                        releaseAssets(first: 1) {
                           nodes {
                             url
                             downloadUrl
