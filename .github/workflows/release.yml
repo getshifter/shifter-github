@@ -27,5 +27,5 @@ jobs:
         TAGNAME: ${{ github.ref }}
         GOPATH: /home/runner/go
       run: |
-        go get -u github.com/tcnksm/ghr
+        go install github.com/tcnksm/ghr@latest
         ${GOPATH}/bin/ghr -b "${PACKAGE_NAME} ${TAGNAME#refs/tags/}" -replace ${TAGNAME#refs/tags/} ${PACKAGE_NAME}.zip
