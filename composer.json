@@ -1,5 +1,10 @@
 {
+    "name": "getshifter/shifter-github",
+    "description": "Shifter Github Plugin/Theme Installer",
     "require": {
         "erusev/parsedown": "^1.7"
+    },
+    "config": {
+        "autoloader-suffix": "ShifterGitHub"
     }
 }
